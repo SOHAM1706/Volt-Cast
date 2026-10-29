@@ -1,15 +1,22 @@
 /**
  * VoltCast API Client
- * Connects to the FastAPI backend with CORS support and fallback
+ * Connects to the FastAPI backend using VITE_API_URL or falls back to localhost.
  */
 
 const getApiBase = () => {
+  // If Vite environment variable is set (e.g. Render backend URL in production), use it
+  if (import.meta.env.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL}/api`;
+  }
+  
+  // Local development fallback
   if (typeof window !== 'undefined' && window.location) {
     const port = window.location.port;
     if (port === '5173' || port === '5174' || port === '3000') {
       return 'http://127.0.0.1:8000/api';
     }
   }
+  
   return '/api';
 };
 
@@ -40,7 +47,7 @@ export async function trainModel(params) {
     body: JSON.stringify(params),
   });
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || 'Training failed');
   }
   return res.json();
@@ -53,7 +60,7 @@ export async function calculateCosts(params) {
     body: JSON.stringify(params),
   });
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || 'Cost calculation failed');
   }
   return res.json();
@@ -66,7 +73,7 @@ export async function generateSyntheticData(params) {
     body: JSON.stringify(params),
   });
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || 'Data generation failed');
   }
   return res.json();
@@ -80,7 +87,7 @@ export async function uploadCsvFile(file) {
     body: formData,
   });
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || 'CSV upload failed');
   }
   return res.json();
